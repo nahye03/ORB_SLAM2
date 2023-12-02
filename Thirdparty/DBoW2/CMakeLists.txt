@@ -24,13 +24,25 @@ set(SRCS_DUTILS
   DUtils/Random.cpp
   DUtils/Timestamp.cpp)
 
-find_package(OpenCV 3.0 QUIET)
-if(NOT OpenCV_FOUND)
-   find_package(OpenCV 2.4.3 QUIET)
-   if(NOT OpenCV_FOUND)
-      message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
-   endif()
-endif()
+# find_package(OpenCV 4.5.3 QUIET)
+# if(NOT OpenCV_FOUND)
+#    find_package(OpenCV 2.4.3 QUIET)
+#    if(NOT OpenCV_FOUND)
+#       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
+#    endif()
+# endif()
+
+message(STATUS "Finding OpenCV...")
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+  find_package(OpenCV REQUIRED HINTS /home/nahye/ORB_SLAM2/Thirdparty/opencv/install/Debug/lib/cmake/opencv4)
+endif (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+  find_package(OpenCV REQUIRED HINTS /home/nahye/ORB_SLAM2/Thirdparty/opencv/install/Release/lib/cmake/opencv4)
+  
+endif (CMAKE_BUILD_TYPE MATCHES "Release")
+if (OpenCV_FOUND)
+  message(STATUS "Found OpenCV library: " ${OpenCV_INCLUDE_DIRS})
+endif (OpenCV_FOUND)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
