@@ -56,8 +56,8 @@ def main():
     global pw
     pw = Password(args.password)
 
-    install_linux_packages()
-    install_cpp_packages()
+    # install_linux_packages()
+    # install_cpp_packages()
     install_build_packages(args.d)
 
 
@@ -156,8 +156,8 @@ def install_build_packages(enable_debug):
     #     install_ceres(cfg.ceres, enable_debug)
     # if cfg.gtest != "":
     #     install_gtest(cfg.gtest, enable_debug)
-    # if cfg.easy_profiler != "":
-    #     install_easy_profiler(cfg.easy_profiler, enable_debug)
+    if cfg.easy_profiler != "":
+        install_easy_profiler(cfg.easy_profiler, enable_debug)
     # if cfg.imgui != "":
     #     install_imgui(cfg.imgui, enable_debug)
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(ORB_SLAM2)
+project(ORB_SLAM2 LANGUAGES CXX)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
@@ -7,8 +7,8 @@ ENDIF()
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native -Wno-deprecated" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native -Wno-deprecated")
 
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
@@ -28,31 +28,31 @@ endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
-message(STATUS "Finding OpenCV...")
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-  find_package(OpenCV REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/opencv/install/Debug/lib/cmake/opencv4)
-endif (CMAKE_BUILD_TYPE MATCHES "Debug")
-if (CMAKE_BUILD_TYPE MATCHES "Release")
-  find_package(OpenCV REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/opencv/install/Release/lib/cmake/opencv4)
-endif (CMAKE_BUILD_TYPE MATCHES "Release")
-if (OpenCV_FOUND)
-  message(STATUS "Found OpenCV library: " ${OpenCV_INCLUDE_DIRS})
-endif (OpenCV_FOUND)
-
-# find_package(OpenCV 4.8.0 QUIET)
+# OpenCV
+# find_package(OpenCV 3.0 QUIET)
 # if(NOT OpenCV_FOUND)
 #    find_package(OpenCV 2.4.3 QUIET)
 #    if(NOT OpenCV_FOUND)
 #       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
 #    endif()
 # endif()
+message(STATUS "Finding OpenCV...")
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+  find_package(OpenCV REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/opencv/install/Debug/lib/cmake/opencv4)
+endif (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+  find_package(OpenCV REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/opencv/install/Release/share/OpenCV)
+endif (CMAKE_BUILD_TYPE MATCHES "Release")
+if (OpenCV_FOUND)
+  message(STATUS "Found OpenCV library: " ${OpenCV_INCLUDE_DIRS})
+endif (OpenCV_FOUND)
 
-# find_package(Eigen3 3.4.90 REQUIRED NO_MODULE)
+# Eigen
+# find_package(Eigen3 3.3.9 REQUIRED)
 message(STATUS "Finding Eigen3...")
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
   find_package(Eigen3 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/eigen/install/Debug/share/eigen3/cmake)
 endif (CMAKE_BUILD_TYPE MATCHES "Debug")
-
 if (CMAKE_BUILD_TYPE MATCHES "Release")
   find_package(Eigen3 REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/eigen/install/Release/share/eigen3/cmake)
 endif (CMAKE_BUILD_TYPE MATCHES "Release")
@@ -60,7 +60,25 @@ if(${Eigen3_FOUND})
   message(STATUS "Found: Eigen3 - ${EIGEN3_INCLUDE_DIRS}")
 endif(${Eigen3_FOUND})
 
-find_package(Pangolin REQUIRED)
+#Pangolin
+# find_package(Pangolin REQUIRED)
+message(STATUS "Finding Pangolin...")
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+  find_package(Pangolin REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/pangolin/install/Debug/lib/cmake/Pangolin)
+endif (CMAKE_BUILD_TYPE MATCHES "Debug")
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+  find_package(Pangolin REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/pangolin/install/Release/lib/cmake/Pangolin)
+endif (CMAKE_BUILD_TYPE MATCHES "Release")
+if (${Pangolin_FOUND})
+  message(STATUS "Found Pangolin - ${Pangolin_INCLUDE_DIRS}")
+endif (${Pangolin_FOUND})
+
+#easy_profiler
+message(STATUS "Finding Easy-profiler...")
+find_package(easy_profiler REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/easy_profiler/install/Release/lib/cmake/easy_profiler)
+if(${easy_profiler_FOUND})
+  message(STATUS "Found: Easy-profiler - ${easy_profiler_INCLUDE_DIRS}")
+endif(${easy_profiler_FOUND})
 
 include_directories(
 ${PROJECT_SOURCE_DIR}
@@ -99,6 +117,7 @@ ${EIGEN3_LIBS}
 ${Pangolin_LIBRARIES}
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+easy_profiler
 )
 
 # Build examples
@@ -133,4 +152,3 @@ target_link_libraries(mono_kitti ${PROJECT_NAME})
 add_executable(mono_euroc
 Examples/Monocular/mono_euroc.cc)
 target_link_libraries(mono_euroc ${PROJECT_NAME})
-
