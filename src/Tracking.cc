@@ -18,7 +18,7 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+#include "easy/profiler.h"
 #include "Tracking.h"
 
 #include<opencv2/core/core.hpp>
@@ -237,6 +237,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
 
 cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
 {
+    EASY_BLOCK("Pre-process Input", profiler::colors::Pink);
     mImGray = im;
 
     if(mImGray.channels()==3)
@@ -253,6 +254,7 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
         else
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
+    EASY_END_BLOCK;
 
     if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET)
         mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
@@ -294,6 +296,7 @@ void Tracking::Track()
         bool bOK;
 
         // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
+        EASY_BLOCK("Pose Prediction or Relocalization", profiler::colors::Green);
         if(!mbOnlyTracking)
         {
             // Local Mapping is activated. This is the normal behaviour, unless
@@ -393,8 +396,10 @@ void Tracking::Track()
         }
 
         mCurrentFrame.mpReferenceKF = mpReferenceKF;
+        EASY_END_BLOCK;
 
         // If we have an initial estimation of the camera pose and matching. Track the local map.
+        EASY_BLOCK("Track Local Map", profiler::colors::Orange);
         if(!mbOnlyTracking)
         {
             if(bOK)
@@ -408,6 +413,7 @@ void Tracking::Track()
             if(bOK && !mbVO)
                 bOK = TrackLocalMap();
         }
+        EASY_END_BLOCK;
 
         if(bOK)
             mState = OK;
@@ -418,6 +424,7 @@ void Tracking::Track()
         mpFrameDrawer->Update(this);
 
         // If tracking were good, check if we insert a keyframe
+        EASY_BLOCK("New KeyFrame Decision", profiler::colors::Yellow);
         if(bOK)
         {
             // Update motion model
@@ -467,6 +474,7 @@ void Tracking::Track()
                     mCurrentFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
             }
         }
+        EASY_END_BLOCK;
 
         // Reset if the camera get lost soon after initialization
         if(mState==LOST)
@@ -562,7 +570,7 @@ void Tracking::StereoInitialization()
 
 void Tracking::MonocularInitialization()
 {
-
+    EASY_BLOCK("Initialization", profiler::colors::LightBlue);
     if(!mpInitializer)
     {
         // Set Reference Frame
@@ -632,6 +640,7 @@ void Tracking::MonocularInitialization()
             CreateInitialMapMonocular();
         }
     }
+    EASY_END_BLOCK;
 }
 
 void Tracking::CreateInitialMapMonocular()
