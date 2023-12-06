@@ -7,8 +7,8 @@ ENDIF()
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native -Wno-deprecated" )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native -Wno-deprecated")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native -Wno-deprecated -w -fPIC" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native -Wno-deprecated -w -fPIC")
 
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
@@ -74,8 +74,9 @@ if (${Pangolin_FOUND})
 endif (${Pangolin_FOUND})
 
 #easy_profiler
+
 message(STATUS "Finding Easy-profiler...")
-find_package(easy_profiler REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/easy_profiler/install/Release/lib/cmake/easy_profiler)
+find_package(easy_profiler REQUIRED HINTS ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/easy_profiler/install/Release/lib/cmake/easy_profiler)
 if(${easy_profiler_FOUND})
   message(STATUS "Found: Easy-profiler - ${easy_profiler_INCLUDE_DIRS}")
 endif(${easy_profiler_FOUND})

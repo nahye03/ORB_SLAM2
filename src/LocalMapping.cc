@@ -17,6 +17,7 @@
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <easy/profiler.h>
 
 #include "LocalMapping.h"
 #include "LoopClosing.h"
@@ -46,7 +47,7 @@ void LocalMapping::SetTracker(Tracking *pTracker)
 
 void LocalMapping::Run()
 {
-
+    EASY_THREAD("Local Mapping");
     mbFinished = false;
 
     while(1)
@@ -58,13 +59,19 @@ void LocalMapping::Run()
         if(CheckNewKeyFrames())
         {
             // BoW conversion and insertion in Map
+            EASY_BLOCK("KeyFrame Insertion", profiler::colors::Red);
             ProcessNewKeyFrame();
+            EASY_END_BLOCK;
 
             // Check recent MapPoints
+            EASY_BLOCK("Recent MapPoint Cuuling", profiler::colors::Orange);
             MapPointCulling();
+            EASY_END_BLOCK;
 
             // Triangulate new MapPoints
+            EASY_BLOCK("New Point Creation", profiler::colors::Yellow);
             CreateNewMapPoints();
+            EASY_END_BLOCK;
 
             if(!CheckNewKeyFrames())
             {
@@ -77,11 +84,16 @@ void LocalMapping::Run()
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
-                if(mpMap->KeyFramesInMap()>2)
+                if(mpMap->KeyFramesInMap()>2){
+                    EASY_BLOCK("Local BA", profiler::colors::Green);
                     Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
+                    EASY_END_BLOCK;
+                }
 
                 // Check redundant local Keyframes
+                EASY_BLOCK("Local KeyFrames Culling", profiler::colors::Blue);
                 KeyFrameCulling();
+                EASY_END_BLOCK;
             }
 
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);

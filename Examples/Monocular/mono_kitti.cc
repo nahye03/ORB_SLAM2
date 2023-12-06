@@ -50,8 +50,8 @@ int main(int argc, char **argv)
     vector<double> vTimestamps;
     LoadImages(string(argv[3]), vstrImageFilenames, vTimestamps);
 
-    // int nImages = vstrImageFilenames.size();
-    int nImages = 100;
+    int nImages = vstrImageFilenames.size();
+    // int nImages = 200;
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
@@ -99,6 +99,7 @@ int main(int argc, char **argv)
         vTimesTrack[ni]=ttrack;
 
         // Wait to load the next frame
+        EASY_BLOCK("Wait frame", profiler::colors::Brown50);
         double T=0;
         if(ni<nImages-1)
             T = vTimestamps[ni+1]-tframe;
@@ -107,6 +108,7 @@ int main(int argc, char **argv)
 
         if(ttrack<T)
             usleep((T-ttrack)*1e6);
+        EASY_END_BLOCK;
     }
 
     // Stop all threads

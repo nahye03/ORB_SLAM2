@@ -17,15 +17,12 @@
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <easy/profiler.h>
 
 #include "LoopClosing.h"
-
 #include "Sim3Solver.h"
-
 #include "Converter.h"
-
 #include "Optimizer.h"
-
 #include "ORBmatcher.h"
 
 #include<mutex>
@@ -56,6 +53,7 @@ void LoopClosing::SetLocalMapper(LocalMapping *pLocalMapper)
 
 void LoopClosing::Run()
 {
+    EASY_THREAD("Loop Closure");
     mbFinished =false;
 
     while(1)
@@ -74,7 +72,7 @@ void LoopClosing::Run()
                    CorrectLoop();
                }
             }
-        }       
+        }
 
         ResetIfRequested();
 
@@ -102,6 +100,7 @@ bool LoopClosing::CheckNewKeyFrames()
 
 bool LoopClosing::DetectLoop()
 {
+    EASY_BLOCK("Query Database", profiler::colors::Red);
     {
         unique_lock<mutex> lock(mMutexLoopQueue);
         mpCurrentKF = mlpLoopKeyFrameQueue.front();
@@ -225,11 +224,13 @@ bool LoopClosing::DetectLoop()
     }
 
     mpCurrentKF->SetErase();
+    EASY_END_BLOCK;
     return false;
 }
 
 bool LoopClosing::ComputeSim3()
 {
+    EASY_BLOCK("Compute SE3", profiler::colors::Yellow);
     // For each consistent loop candidate we try to compute a Sim3
 
     const int nInitialCandidates = mvpEnoughConsistentCandidates.size();
@@ -396,7 +397,7 @@ bool LoopClosing::ComputeSim3()
         mpCurrentKF->SetErase();
         return false;
     }
-
+    EASY_END_BLOCK;
 }
 
 void LoopClosing::CorrectLoop()
@@ -517,6 +518,7 @@ void LoopClosing::CorrectLoop()
 
         // Start Loop Fusion
         // Update matched map points and replace if duplicated
+        EASY_BLOCK("Loop Fusion", profiler::colors::Green);
         for(size_t i=0; i<mvpCurrentMatchedPoints.size(); i++)
         {
             if(mvpCurrentMatchedPoints[i])
@@ -533,6 +535,7 @@ void LoopClosing::CorrectLoop()
                 }
             }
         }
+        EASY_END_BLOCK;
 
     }
 
@@ -564,7 +567,9 @@ void LoopClosing::CorrectLoop()
     }
 
     // Optimize graph
+    EASY_BLOCK("Optimize Essential Graph", profiler::colors::Purple);
     Optimizer::OptimizeEssentialGraph(mpMap, mpMatchedKF, mpCurrentKF, NonCorrectedSim3, CorrectedSim3, LoopConnections, mbFixScale);
+    EASY_END_BLOCK;
 
     mpMap->InformNewBigChange();
 
@@ -644,15 +649,20 @@ void LoopClosing::ResetIfRequested()
 
 void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 {
+    EASY_THREAD("Full BA");
     cout << "Starting Global Bundle Adjustment" << endl;
 
     int idx =  mnFullBAIdx;
+
+    EASY_BLOCK("Full BA", profiler::colors::Pink);
     Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
+    EASY_END_BLOCK;
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
     // not included in the Global BA and they are not consistent with the updated map.
     // We need to propagate the correction through the spanning tree
+    EASY_BLOCK("Update Map", profiler::colors::Navy);
     {
         unique_lock<mutex> lock(mMutexGBA);
         if(idx!=mnFullBAIdx)
@@ -746,6 +756,7 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
         mbFinishedGBA = true;
         mbRunningGBA = false;
     }
+    EASY_END_BLOCK;
 }
 
 void LoopClosing::RequestFinish()

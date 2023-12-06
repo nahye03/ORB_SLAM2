@@ -190,7 +190,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
     // ORB extraction
-    EASY_BLOCK("ExtractORB block", profiler::colors::Black);
+    EASY_BLOCK("ExtractORB block", profiler::colors::Blue);
     ExtractORB(0,imGray);
     EASY_END_BLOCK
 
